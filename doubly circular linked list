@@ -1,0 +1,440 @@
+/*
+ *  doubly circular linked list
+ *
+ *  Data Structures
+ *
+ *  Department of Computer Science
+ *  at Chungbuk National University
+ *
+ */
+
+
+
+#include<stdio.h>//입출력 파일 포함
+#include<stdlib.h>//동적 할당 함수 포함
+ /* 필요한 헤더파일 추가 */
+
+typedef struct Node {
+	int key;
+	struct Node* llink;
+	struct Node* rlink;
+} listNode;//헤드노드와 리스트를 담을 노드 구조체
+
+/* 함수 리스트 */
+int initialize(listNode** h);//초기화 함수
+int freeList(listNode* h);//동적할당 함수
+int insertLast(listNode* h, int key);//마지막에 노드 삽입 함수
+int deleteLast(listNode* h);//마지막 노드 지우는 함수
+int insertFirst(listNode* h, int key);//첫번째에 노드 삽입 함수
+int deleteFirst(listNode* h);//첫번째 노드를 지워주는 함수
+int invertList(listNode* h);//리스트 역순으로 재배열 함수
+
+int insertNode(listNode* h, int key);//노드 삽입 함수
+int deleteNode(listNode* h, int key);//노드 제거 함수
+
+void printList(listNode* h);//리스트 프린팅 함수
+
+
+
+int main()
+{
+	char command;
+	int key;//사용자에게 입력받을 값
+	listNode* headnode = NULL;//헤드노드 선언
+
+	do {
+		printf("----------2019038038---------------한서영-----------------------\n");
+		printf("----------------------------------------------------------------\n");
+		printf("                  Doubly Circular Linked List                   \n");
+		printf("----------------------------------------------------------------\n");
+		printf(" Initialize    = z           Print         = p \n");
+		printf(" Insert Node   = i           Delete Node   = d \n");
+		printf(" Insert Last   = n           Delete Last   = e\n");
+		printf(" Insert First  = f           Delete First  = t\n");
+		printf(" Invert List   = r           Quit          = q\n");
+		printf("----------------------------------------------------------------\n");
+
+		printf("Command = ");
+		scanf(" %c", &command);
+
+		switch (command) {
+		case 'z': case 'Z':
+			initialize(&headnode);
+			break;
+		case 'p': case 'P':
+			printList(headnode);
+			break;
+		case 'i': case 'I':
+			printf("Your Key = ");
+			scanf("%d", &key);
+			insertNode(headnode, key);
+			break;
+		case 'd': case 'D':
+			printf("Your Key = ");
+			scanf("%d", &key);
+			deleteNode(headnode, key);
+			break;
+		case 'n': case 'N':
+			printf("Your Key = ");
+			scanf("%d", &key);
+			insertLast(headnode, key);
+			break;
+		case 'e': case 'E':
+			deleteLast(headnode);
+			break;
+		case 'f': case 'F':
+			printf("Your Key = ");
+			scanf("%d", &key);
+			insertFirst(headnode, key);
+			break;
+		case 't': case 'T':
+			deleteFirst(headnode);
+			break;
+		case 'r': case 'R':
+			invertList(headnode);
+			break;
+		case 'q': case 'Q':
+			freeList(headnode);
+			break;
+		default:
+			printf("\n       >>>>>   Concentration!!   <<<<<     \n");
+			break;
+		}
+
+	} while (command != 'q' && command != 'Q');
+
+	return 1;
+}
+
+
+int initialize(listNode * *h) {//리스트 초기화
+	//이중 포인터로 받는다. 이중포인터기 때문에 *h를 사용해서 접근
+	/* headNode가 NULL이 아니면, freeNode를 호출하여 할당된 메모리 모두 해제 */
+	if (*h != NULL)
+		freeList(*h);
+
+	/* headNode에 대한 메모리를 할당하여 리턴 */
+	*h = (listNode*)malloc(sizeof(listNode));
+	(*h)->rlink = *h;
+	(*h)->llink = *h;
+	(*h)->key = -9999;
+	return 1;
+}
+
+/* 메모리 해제 */
+int freeList(listNode * h) {
+
+	listNode* temp = h;//임시 저장 값
+
+	listNode* prev = NULL;//임시로 값 할당
+	while (temp != NULL) {
+		prev = temp;
+		temp = temp->rlink;
+		free(prev);
+	}//구조체 안에 있는 요소들 해제시켜줌
+	free(h);//마지막 헤드를 해제시킴
+	return 0;
+}
+
+
+
+void printList(listNode * h) {//리스트 프린팅  함수
+	int i = 0;//반복문에서 사용할 변수
+	listNode* p;//임시로 값을 담을 구조체
+
+	printf("\n---PRINT\n");
+
+	if (h == NULL) {
+		printf("Nothing to print....\n");
+		return;
+	}//구조체가 비어 있으면 안내해줌
+
+	p = h->rlink;//p에 구조체의 첫번째 노드 담아줌
+
+	while (p != NULL && p != h) {
+		printf("[ [%d]=%d ] ", i, p->key);
+		p = p->rlink;
+		i++;
+	}//반복문을 이용해 키값과 몇번째인지 알려줌
+	printf("  items = %d\n", i);//안에있는 변수의 개수
+
+
+	/* print addresses */
+	printf("\n---checking addresses of links\n");
+	printf("-------------------------------\n");
+	printf("head node: [llink]=%p, [head]=%p, [rlink]=%p\n", h->llink, h, h->rlink);//헤드노드의 주소 알려줌
+	//link들은 주소이기 때문에 주소값 프린팅 됨
+	i = 0;
+	p = h->rlink;
+	while (p != NULL && p != h) {
+		printf("[ [%d]=%d ] [llink]=%p, [node]=%p, [rlink]=%p\n", i, p->key, p->llink, p, p->rlink);
+		p = p->rlink;
+		i++;
+	}//키값과 주소값 알려줌
+
+}
+
+
+
+/**
+ * list에 key에 대한 노드하나를 추가
+ */
+int insertLast(listNode * h, int key) {
+	listNode* temp = (listNode*)malloc(sizeof(listNode));
+	listNode* copy = (listNode*)malloc(sizeof(listNode));//임시로 사용할 구조체 
+
+	copy = h;//카피에 h넣어줌
+
+	temp->llink = NULL;
+	temp->rlink = NULL;
+	temp->key = key;//temp 정의해줌
+	//temp는 노드로 들어갈 구조체
+	if (h->rlink == h)
+	{//만약 노드가 하나인 경우
+		temp->llink = h;
+		temp->rlink = h;
+		h->rlink = temp;
+		h->llink = temp;//temp의 왼쪽 오른쪽 링크를 h로 변경
+		//h의 오른쪽 링크를 temp로 변경
+		return 0;
+	}
+
+	while (copy->rlink != h)
+	{
+		copy = copy->rlink;
+	}//copy를 다음 것으로 옮겨주는 것을 통해 마지막 노드로감
+
+	h->llink = temp;
+	copy->rlink = temp;
+	temp->rlink = h;
+	temp->llink = copy;//h와 temp이어줌
+	return 1;
+}
+
+
+/**
+ * list의 마지막 노드 삭제
+ */
+int deleteLast(listNode * h) {
+
+	if (h == NULL)
+	{
+		printf("빈 리스트 입니다.\n");
+		return 0;
+	}//만약 비어있다면 비어있음을 알려줌
+	listNode* copy = h;//h를 임시 저장할 copy 구조체
+
+	if (copy->rlink == h)
+	{
+		h->rlink->llink = NULL;
+		h->rlink->rlink = NULL;
+		return 0;
+	}//만약 구조체가 하나라면
+	//안에 들어있는 모든 값 삭제
+	while (copy->rlink != h)
+	{
+		copy = copy->rlink;
+	}//마지막 노드까지 가기 위해 반복문 해줌
+	(copy->llink)->rlink = h;
+	(copy->rlink)->llink = (copy->llink);
+	copy->rlink = NULL;
+	copy->llink = NULL;//마지막 노드인 copy는 연결 끊음
+	//copy의 앞 뒤 값은 서로를 연결해줌
+	return 1;
+}
+
+
+/**
+ * list 처음에 key에 대한 노드하나를 추가
+ */
+int insertFirst(listNode* h, int key) {
+	listNode* copy = h;
+	listNode* temp = (listNode*)malloc(sizeof(listNode));//값을 임시로 저장할 구조체
+
+	temp->key = key;
+	temp->llink = NULL;
+	temp->rlink = NULL;//key값을 저장하는 노드
+
+	if (h == NULL)
+	{
+		printf("초기화되지 않은 리스트.\n");
+		return 0;
+	}//만약 값이 없는 리스트면 알려준다.
+
+	if (h->rlink == h)
+	{
+		temp->llink = h;
+		temp->rlink = h->rlink;
+		h->rlink->llink = temp;
+		h->rlink = temp;
+
+		return 0;
+	}//만약 노드가 하나인 구조체라면
+	//마지막과 처음을 이어질 수 있도록 해줌
+
+	temp->llink = h;//삽입할 노드 llink에 h연결
+	if (h->rlink == NULL)
+		h->rlink = temp;//첫번째 노드라면 h의 rlink에 바로 연결
+	else
+	{
+		temp->rlink = h->rlink;//아니라면 삽입할 노드 temp의 rlink에 기존 노드인 h->rlink를 연결
+		h->rlink = temp;//h의 rlink에 노드 삽입
+		temp->rlink->llink = temp;//기존 노드의 llink에 삽입할 노드 temp를 연결
+	}
+
+
+	return 1;
+}
+
+/**
+ * list의 첫번째 노드 삭제
+ */
+int deleteFirst(listNode * h) {
+
+	if (h == NULL)
+	{
+		printf("빈 리스트 입니다.\n");
+		return 0;
+	}//이미 비어있을 경우 알려준다
+	if (h->rlink == h)
+	{
+		h->llink = NULL;
+		h->rlink = NULL;
+		h->key = NULL;
+		h == NULL;
+		return 0;
+	}//만약 노드가 하나인 경우 모두 삭제해줌
+	listNode* copy = h->rlink;
+
+	h->rlink = copy->rlink;
+	copy->rlink->llink = h;
+	//노드가 두개 이상인 경우 노드 삭제를 위해 맨 마지막 값과 두번째 값을 이어준다.
+	return 1;
+
+}
+
+
+/**
+ * 리스트의 링크를 역순으로 재 배치
+ */
+int invertList(listNode* h) {
+	listNode* temp = (listNode*)malloc(sizeof(listNode));
+	listNode* copy = (listNode*)malloc(sizeof(listNode));//임시 저장 구조체
+
+
+
+	if (h == NULL)//값이 있는지 검사
+	{
+		printf("값이 들어있지 않은 리스트\n");
+		return 0;
+	}
+
+	copy = h->rlink;//임시로값을 저장
+
+	temp->rlink = NULL;
+	temp->llink = NULL;
+
+	insertFirst(temp, copy->key);
+	//첫번째에 값을 저장
+
+	copy = (copy->rlink);//다음 값으로 넘김
+
+	do//copy의 키 값을 순서대로 temp에 앞으로 집어 넣는 형식으로 해줌
+	{
+		insertFirst(temp, copy->key);
+		copy = (copy->rlink);
+
+	} while ((copy) != h);
+
+	copy = temp;//마지막 노드 찾기 위해 임시 저장
+	while (copy->rlink != NULL)
+		copy = copy->rlink;//오른쪽이 NULL인 마지막 노드를 찾으면
+	copy->rlink = h;//마지막 노드 rlink에 헤더를 연결
+	h->llink = copy;//헤더 llink에 마지막 노드를 연결
+	h->rlink = temp->rlink;//역순 정렬된 노드들을 h에 연결
+
+
+	return 0;
+
+}
+
+
+int insertNode(listNode* h, int key) {
+	listNode* temp = (listNode*)malloc(sizeof(listNode));//임시로 값을 저장할 구조체
+	temp->key = key;
+	temp->rlink = NULL;
+	temp->llink = NULL;//temp값 초기화해줌
+	//temp는 노드가 될 구조체
+	if (h->rlink == h)
+	{
+		insertFirst(h, key);
+		return 0;
+	}//만약 비어있는 리스트이면 헤드를 생성해준다.
+	listNode* copy = h->rlink;//h값을 가져올 구조체 
+
+	while (copy != h)//구조체 안에 값을 다 읽을 수 있또록 해줌
+	{
+		if (copy->key >= key)
+		{//만약 키값보다 구조체의 값이 더 크다면
+			if (copy == h)
+			{//구조체가 하나인 경우
+				insertFirst(h, key);//첫번째에 값을 넣어준다
+			}
+			else
+			{
+				(copy->llink)->rlink = temp;
+				temp->llink = copy->llink;
+				copy->llink = temp;
+				temp->rlink = copy;
+				//아닌 경우 copy값의 왼쪽-temp-copy 순으로 서로 이어지게 해준다.
+			}
+			return 0;
+		}
+		copy = copy->rlink;//copy를 다음으로 넘겨줌
+	}
+
+	insertLast(h, key);//마지막에 삽입
+
+	return 0;
+}
+
+
+
+int deleteNode(listNode* h, int key) {
+	if (h == NULL)
+	{
+		printf("빈 리스트 입니다.\n");
+		return 0;
+	}//리스트가 비어있음을 알려줌
+
+	listNode* temp = NULL;
+	listNode* copy = h->rlink;
+	//임시로 값을 저장할 구조체
+	while (copy != h)
+	{//마지막 까지 값을 검색
+		if (copy->key == key)
+		{//키값이 일치한다면
+			if (copy == h)
+			{
+				deleteFirst(h);
+			}//만약 노드가 하나라면 첫번째 값을 지워줌
+			else
+			{
+				copy->llink->rlink = copy->rlink;
+				copy->rlink->llink = copy->llink;
+			}//아닌경우 copy 앞과 뒤의 값을 연결
+			return 0;
+		}
+		copy = copy->rlink;//copy를 다음 값으로 넘겨줌
+	}
+	if (copy->key == key)
+	{
+		deleteLast(h);
+		return 0;
+	}//만약 키 값이 마지막에서 일치할 경우
+	printf("키를 찾을 수 없습니다.\n");//끝까지 못 찾은 경우
+
+	return 0;
+}
+
+
